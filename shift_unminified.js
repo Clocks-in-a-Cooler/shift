@@ -70,6 +70,7 @@ var player = {
 
 var obstacles = [];
 var density = 0.01;
+var delay = 1000;
 
 function Obstacle(x, y, radius) {
     this.x = x; this.y = y;
@@ -126,5 +127,11 @@ function start(evt) {
         removeEventListener("keyup", start);
     }
 }
+
+cxt.fillStyle = player.colour;
+cxt.beginPath();
+cxt.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+cxt.closePath();
+cxt.fill();
 
 addEventListener("keyup", start);
