@@ -45,14 +45,14 @@ var player = {
         */
         if (!this.jumped_left && keys.left) {
             this.jumped_left = true;
-            console.log("jumped left");
+            //console.log("jumped left");
             //jump to the left
             this.x -= this.jump_length + Math.random() * this.jump_variation;
         }
         
         if (!this.jumped_right && keys.right) {
             this.jumped_right = true;
-            console.log("jumped right");
+            //console.log("jumped right");
             this.x += this.jump_length + Math.random() * this.jump_variation; 
         }
         
@@ -69,18 +69,28 @@ var player = {
 };
 
 var obstacles = [];
-var density = 0.01;
-var delay = 1000;
+var density = 0.01; //?
+var spawn_delay = 100;
+var last_spawn = 0;
 
-function Obstacle(x, y, radius) {
-    this.x = x; this.y = y;
-    this.radius = radius;
+function Obstacle(x, radius) {
+    this.x = x; this.y = 0;
+    this.radius = (isNaN(radius) || radius < 5) ? 5 : radius;
+    this.active = true;
 }
 
 Obstacle.prototype.colour = "silver";
+Obstacle.prototype.speed = function() {
+    //start at 0.2, approach 0.8
+    //some nasty formula I worked out.
+    return 0.4 + (0.8 / Math.PI) * Math.atan(9 * (time_survived / 60000 - 1));
+};
 
 Obstacle.prototype.update = function(lapse) {
-    
+    this.y += lapse * this.speed();
+    if (this.y > canvas.height) {
+        this.active = false;
+    }
 };
 
 function draw() {
@@ -98,9 +108,15 @@ function draw() {
     cxt.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
     cxt.closePath();
     cxt.fill();
+    
+    cxt.fillStyle = "dodgerblue"; //I just love this colour, don't I?
+    cxt.font = "18pt sans-serif";
+    cxt.alignText = "left";
+    cxt.textBaseLine = "top";
+    cxt.fillText("score: " + Math.floor(time_survived / 1000) + " | obstacle speed: " + Obstacle.prototype.speed(), 5, 50);
 }
 
-var last_time = null, lapse = 0;
+var last_time = null, lapse = 0, max_lapse = 100;
 var playing = false;
 function animate(time) {
     if (last_time == null) {
@@ -110,8 +126,20 @@ function animate(time) {
     }
     last_time = time;
     
+    if (lapse > max_lapse) {
+        //console.log("lapse (" + lapse + " ms) too long! setting lapse to " + max_lapse);
+        lapse = max_lapse;
+    }
+    
     if (playing) {
+        time_survived += lapse;
+        last_spawn += lapse;
+        if (last_spawn > spawn_delay) {
+            last_spawn = 0;
+            obstacles.push(new Obstacle(Math.random() * canvas.width, 10));
+        }
         player.update(lapse);
+        obstacles = obstacles.filter( o => o.active);
         obstacles.forEach(o => { o.update(lapse); });
         requestAnimationFrame(animate);
     }
