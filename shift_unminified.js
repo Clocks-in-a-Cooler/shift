@@ -60,6 +60,16 @@ var player = {
         this.jumped_right = this.jumped_right && keys.right;
         
         this.x = Math.max(this.radius, Math.min(this.x, canvas.width - this.radius));
+        
+        //check for collision with the obstacles
+        obstacles.forEach(o => {
+            var actual_distance = Math.hypot(this.x - o.x, this.y - o.y);
+            var minimum_distance = this.radius + o.radius;
+            
+            if (actual_distance <= minimum_distance) {
+                end();
+            }
+        });
     },
     
     reset: function() {
@@ -109,11 +119,13 @@ function draw() {
     cxt.closePath();
     cxt.fill();
     
+    /*
     cxt.fillStyle = "dodgerblue"; //I just love this colour, don't I?
     cxt.font = "18pt sans-serif";
     cxt.alignText = "left";
     cxt.textBaseLine = "top";
     cxt.fillText("score: " + Math.floor(time_survived / 1000) + " | obstacle speed: " + Obstacle.prototype.speed(), 5, 50);
+    */
 }
 
 var last_time = null, lapse = 0, max_lapse = 100;
@@ -154,6 +166,29 @@ function start(evt) {
         requestAnimationFrame(animate);
         removeEventListener("keyup", start);
     }
+}
+
+function end() {
+    document.getElementById("instructions").innerHTML = "press SHIFT to restart.";
+    document.getElementById("instructions").innerHTML += "<br />score: " + Math.floor(time_survived / 1000);
+    document.getElementById("instructions").style.visibility = "visible";
+    playing = false;
+    cxt.clearRect(0, 0, canvas.width, canvas.height);
+    cxt.fillStyle = player.colour;
+    cxt.beginPath();
+    cxt.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+    cxt.closePath();
+    cxt.fill();
+    reset();
+    addEventListener("keyup", start);
+}
+
+function reset() {
+    last_time = null;
+    player.reset();
+    last_spawn = 0;
+    time_survived = 0;
+    obstacles = [];
 }
 
 cxt.fillStyle = player.colour;
