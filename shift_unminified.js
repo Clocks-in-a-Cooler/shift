@@ -48,12 +48,14 @@ var player = {
             //console.log("jumped left");
             //jump to the left
             this.x -= this.jump_length + Math.random() * this.jump_variation;
+            ZZFX.z(57087);
         }
         
         if (!this.jumped_right && keys.right) {
             this.jumped_right = true;
             //console.log("jumped right");
-            this.x += this.jump_length + Math.random() * this.jump_variation; 
+            this.x += this.jump_length + Math.random() * this.jump_variation;
+            ZZFX.z(57087);
         }
         
         this.jumped_left = this.jumped_left && keys.left;
@@ -67,6 +69,7 @@ var player = {
             var minimum_distance = this.radius + o.radius;
             
             if (actual_distance <= minimum_distance) {
+                ZZFX.z(21486);
                 end();
             }
         });
